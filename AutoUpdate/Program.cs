@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -10,21 +11,32 @@ namespace Agent
 {
     class Program
     {
-        static string version = "0.2";
-        static string versionFilePath = @"C:\Users\krish\source\repos\AutoUpdate\version\";
-        static string zipPath = @"C:\Users\krish\source\repos\AutoUpdate\version.zip";
+        private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        static string version = ConfigurationManager.AppSettings["version"];
+        static string versionFilePath = ConfigurationManager.AppSettings["versionFilePath"];
+        static string zipPath = ConfigurationManager.AppSettings["zipPath"];
         static void Main(string[] args)
         {
+            
             WriteVersion();
             Console.WriteLine("I am agent {0}", version);
             Console.ReadLine();
         }
 
         public static void WriteVersion()
-        {
-            string createText = version;
-            File.WriteAllText(versionFilePath + "version.txt", createText);
-            ZipVersionInfo();
+        {            
+            try
+            {
+                string createText = version;
+                File.WriteAllText(versionFilePath + "version.txt", createText);
+                log.Info("Version updated in file");
+                ZipVersionInfo();
+                log.Info("Version file zipped");
+            }
+            catch(Exception ex)
+            {
+                log.Error("Error Message: " + ex.Message.ToString(), ex);
+            }
         }
 
         public static void ZipVersionInfo()
@@ -35,5 +47,7 @@ namespace Agent
             }
             ZipFile.CreateFromDirectory(versionFilePath, zipPath);
         }
+
+        
     }
 }
